@@ -1,0 +1,27 @@
+.list-container {
+  display: flex;
+  flex-direction: column;
+
+  .list-row {
+    padding: 7px;
+    display: flex;
+    flex-direction: row;
+
+    &:nth-child(odd) {
+      background: #f0f0f0;
+    }
+
+    &.list-row-header {
+      background: #ddd;
+      font-weight: bold;
+    }
+
+    .list-column {
+      flex: 1;
+      
+    }
+  }
+}
+
+
+

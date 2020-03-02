@@ -1,0 +1,28 @@
+.upcoming-header {
+  font-weight: bold;
+  padding: 4px 8px;
+}
+
+.voter-container {
+  background: #f0f0f0;
+  padding: 10px;
+
+  .voter-row {
+    display: flex;
+    flex-direction: row;
+    padding: 5px;
+    border-bottom: #999 1px solid;
+
+    &:last-child {
+      border: none;
+    }
+
+    .voter-column {
+      flex: 1;
+
+      &.voter-column-restaurants {
+        font-size: smaller;
+      }
+    }
+  }
+}
