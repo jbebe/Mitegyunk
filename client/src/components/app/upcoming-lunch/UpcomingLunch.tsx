@@ -1,6 +1,6 @@
 import './UpcomingLunch.scss';
 import React, {useState} from 'react';
-import {IRestaurantData, IVoter, renderVote, VoteType} from "../../../types/Types";
+import {IRestaurantData, IVoter, renderVote, VoteType} from "../../../shared/Types";
 import {ObjectStore} from "../../../logic/ObjectStore";
 
 function UpcomingLunch() {

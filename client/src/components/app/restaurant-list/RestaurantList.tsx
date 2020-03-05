@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import './RestaurantList.scss';
-import {IRestaurantData} from "../../../types/Types";
+import {IRestaurantData} from "../../../shared/Types";
 import {ObjectStore} from "../../../logic/ObjectStore";
 
 interface IRestaurantFieldMeta {
