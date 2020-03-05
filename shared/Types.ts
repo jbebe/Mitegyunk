@@ -1,3 +1,4 @@
+
 export enum PriceRange {
     Cheap = 0,
     Normal = 1,
@@ -62,4 +63,9 @@ export interface IVoter {
 
     name: string;
     restaurants: IPreference[];
+}
+
+export interface User {
+    id: string;
+    name: string;
 }
