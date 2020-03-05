@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import './RestaurantList.scss';
 import {IRestaurantData} from "../../../types/Types";
 import {ObjectStore} from "../../../logic/ObjectStore";
@@ -11,8 +11,15 @@ interface IRestaurantFieldMeta {
 }
 
 function RestaurantList() {
+    const [restaurants, setRestaurants] = useState([] as IRestaurantData[]);
 
-    const restaurants = ObjectStore.getRestaurants();
+    async function initAsync(){
+        const restaurants = await ObjectStore.getRestaurantsAsync();
+        setRestaurants(restaurants);
+    }
+
+    initAsync();
+
     const header: IRestaurantFieldMeta[] = [
         {
             id: 'name',

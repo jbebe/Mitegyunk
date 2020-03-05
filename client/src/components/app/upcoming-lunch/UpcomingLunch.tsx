@@ -1,11 +1,19 @@
 import './UpcomingLunch.scss';
-import React from 'react';
-import {IVoter, renderVote, VoteType} from "../../../types/Types";
+import React, {useState} from 'react';
+import {IRestaurantData, IVoter, renderVote, VoteType} from "../../../types/Types";
 import {ObjectStore} from "../../../logic/ObjectStore";
 
 function UpcomingLunch() {
 
-    const restaurants = ObjectStore.getRestaurants();
+    const [restaurants, setRestaurants] = useState([] as IRestaurantData[]);
+
+    async function initAsync(){
+        const restaurants = await ObjectStore.getRestaurantsAsync();
+        setRestaurants(restaurants);
+    }
+
+    initAsync();
+
     const title = 'Állás';
     const voters: IVoter[] = [
         {
@@ -56,27 +64,25 @@ function UpcomingLunch() {
             : 'Nincs közös egyezés :(';
     })();
 
+    function renderRestaurants(voter: IVoter) {
+        return voter.restaurants.map(r =>
+            <div key={`${voter.name}${r.name}${r.type}`}>
+                {`${r.name} (${renderVote(r.type)})`}
+            </div>);
+    }
+
+    function renderVoters() {
+        return voters.map(v =>
+            <div key={v.name} className={'voter-row'}>
+                <div className={'voter-column'}>{v.name}</div>
+                <div className={'voter-column voter-column-restaurants'}>{ renderRestaurants(v) }</div>
+            </div>);
+    }
+
     return (
         <div className={'card'}>
             <header className={'upcoming-header'}>{title}</header>
-            <div className={'voter-container'}>
-                {
-                    voters.map(v =>
-                        <div key={v.name} className={'voter-row'}>
-                            <div className={'voter-column'}>
-                                {v.name}
-                            </div>
-                            <div className={'voter-column voter-column-restaurants'}>
-                                {
-                                    v.restaurants.map(r =>
-                                        <div key={`${v.name}${r.name}${r.type}`}>
-                                            {`${r.name} (${renderVote(r.type)})`}
-                                        </div>)
-                                }
-                            </div>
-                        </div>)
-                }
-            </div>
+            <div className={'voter-container'}>{ renderVoters() }</div>
             <div className={'vote-result'}>{result}</div>
         </div>
     );
