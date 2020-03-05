@@ -5,8 +5,8 @@ import { Response, SuperTest, Test } from 'supertest';
 import app from '@server';
 import UserDao from '@daos/User/UserDao.mock';
 import User, { IUser } from '@entities/User';
-import { pErr } from '@shared/functions';
-import { paramMissingError } from '@shared/constants';
+import { pErr } from 'utils/functions';
+import { paramMissingError } from 'utils/constants';
 
 
 describe('Users Routes', () => {
