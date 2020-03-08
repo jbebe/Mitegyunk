@@ -5,7 +5,7 @@ function Statistics() {
     const title = 'Statisztika';
 
     return (
-        <div className={'card'}>
+        <div className={'card card-wide'}>
             <header>{title}</header>
         </div>
     );

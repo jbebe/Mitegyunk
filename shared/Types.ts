@@ -6,7 +6,7 @@ export enum PriceRange {
 }
 
 export enum CardType {
-    None = 0,
+    Cash = 0,
     DebitCard = 1,
     SzepCard = 2,
 }
@@ -28,8 +28,8 @@ export interface IRestaurantData {
 
     // restaurant properties
     priceRange: PriceRange; // how expensive it is
-    /*supportedCards: CardType; // supported cards. szép, bank, etc.
-    distance: number; // distance from the work (derived data)
+    supportedCards: CardType; // supported cards. szép, bank, etc.
+    /*distance: number; // distance from the work (derived data)
     serveSpeed: number; // how long (minutes) it is until we can eat
     portionSize: AmountType; // in case of menu, size of portions
     sharedLocation: boolean; // some places have shared location with other restaurants
@@ -37,14 +37,15 @@ export interface IRestaurantData {
 }
 
 export enum VoteType {
-    DontCare = 0,
-    HardNo = 1,
+    HardNo = 0,
+    DontCare = 1,
     Maybe = 2,
     Yes = 3,
 }
 
 // @ts-ignore
 export function renderVote(vote: VoteType): string {
+    // tslint:disable-next-line:forin
     for (const enumMember in VoteType) {
         const isValueProperty = parseInt(enumMember, 10) >= 0;
         if (!isValueProperty && (VoteType[enumMember] as unknown) === vote){
@@ -54,18 +55,11 @@ export function renderVote(vote: VoteType): string {
     // never reached
 }
 
-interface IPreference extends IRestaurantData {
-
+export interface IPreference extends IRestaurantData {
     type: VoteType;
 }
 
-export interface IVoter {
-
+export interface IVote {
     name: string;
     restaurants: IPreference[];
-}
-
-export interface User {
-    id: string;
-    name: string;
 }

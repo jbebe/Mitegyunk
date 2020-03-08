@@ -11,20 +11,19 @@ export class DummyDb<T> {
         (async () => {
             try {
                 const obj = await jsonfile.readFile(path);
-                if (obj.prototype.constructor.name !== Array.name)
-                    throw new Error();
             }
             catch (ex){
+                console.log(ex);
                 await jsonfile.writeFile(path, []);
             }
         })();
     }
 
-    protected openDbAsync(): Promise<any> {
+    protected openDbAsync(): Promise<T[]> {
         return jsonfile.readFile(this.dbFilePath);
     }
 
-    protected saveDbAsync(db: any): Promise<any> {
+    protected saveDbAsync(db: any): Promise<void> {
         return jsonfile.writeFile(this.dbFilePath, db);
     }
 
@@ -48,11 +47,12 @@ export class DummyDb<T> {
         await this.saveDbAsync(db);
     }
 
-    public async updateAsync(selector: (obj: T) => boolean, newObj: T): Promise<void> {
+    public async updateAsync(selector: (obj: T) => boolean, newObj: (prev: T) => T): Promise<void> {
         const db = await this.openDbAsync() as T[];
         const idx = db.findIndex((o) => selector(o));
         if (idx >= 0){
-            db[idx] = newObj;
+            db[idx] = newObj(db[idx]);
+            await this.saveDbAsync(db);
         }
         else {
             throw new Error('User not found');
@@ -65,6 +65,7 @@ export class DummyDb<T> {
 
         if (idx >= 0){
             db.splice(idx, 1);
+            await this.saveDbAsync(db);
         }
         else {
             throw new Error('User not found');

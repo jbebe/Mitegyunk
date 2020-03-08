@@ -1,61 +1,76 @@
-import React, { useState } from "react";
 import './RestaurantList.scss';
-import {IRestaurantData} from "../../../shared/Types";
-import {ObjectStore} from "../../../logic/ObjectStore";
+import React, {useEffect} from "react";
+import {IRestaurantData, VoteType} from "../../../shared/Types";
+import {
+    FilterOnColumn,
+    IRestaurantFieldMeta,
+    OrderByColumn, ChildParametersType,
+} from "../../../logic/RestaurantListTableLogic";
 
-interface IRestaurantFieldMeta {
-    id: string;
-    text: string;
-    renderValue: (value: any) => string;
-    orderBy: (a: any, b: any, descending: boolean) => number;
-}
+function RestaurantList({ getGlobal, setGlobal }: ChildParametersType) {
 
-function RestaurantList() {
-    const [restaurants, setRestaurants] = useState([] as IRestaurantData[]);
+    const orderByColumn = (meta: IRestaurantFieldMeta) => {
+        OrderByColumn(meta, getGlobal, setGlobal);
+    };
 
-    async function initAsync(){
-        const restaurants = await ObjectStore.getRestaurantsAsync();
-        setRestaurants(restaurants);
-    }
+    const filterOnColumn = (e: React.ChangeEvent<HTMLSelectElement>, meta: IRestaurantFieldMeta) => {
+        FilterOnColumn(
+            Array.from(e.target.options)
+                .filter((x) => x.selected)
+                .map((x) => x.value),
+            meta, getGlobal, setGlobal);
+    };
 
-    initAsync();
+    const updateVote = (restaurant: IRestaurantData) => {
+        const vote = getGlobal.vote;
 
-    const header: IRestaurantFieldMeta[] = [
-        {
-            id: 'name',
-            text: 'Név',
-            renderValue: value => value,
-            orderBy: (a, b) => a === b
-                ? 0
-                : ((a > b) as any) * 2 - 1,
-        },
-        {
-            id: 'priceRange',
-            text: 'Ár',
-            renderValue: value => '💲'.repeat((value as number) + 1),
-            orderBy: (a, b) => a - b,
+        if (!vote.restaurants.every(r => r.name !== restaurant.name)){
+            return;
         }
-    ];
-    const render = (obj: IRestaurantData, prop: keyof IRestaurantData) => {
-        const fieldMeta = header.find(f => f.id === prop);
+
+        vote.restaurants.push({
+            ...restaurant,
+            type: VoteType.Yes,
+        });
+        setGlobal((prev) => ({
+            ...prev,
+            vote: {
+                name: vote.name,
+                restaurants: vote.restaurants
+            },
+        }));
+        getGlobal.voteApi.createAsync(vote);
+    };
+
+    const renderHeader = () =>
+        getGlobal.fieldMetaData.map(h =>
+            <div key={h.id} className={'list-column list-column-header'}>
+                {h.text}
+                <button onClick={() => orderByColumn(h)}>↕</button>
+                <select onChange={(e) => filterOnColumn(e, h)} multiple>
+                    { h.filter?.values.map(({key, value}) =>
+                        <option key={`${h.id}${value}`} value={key}>{ value }</option>) }
+                </select>
+            </div>);
+
+    const renderRestaurants = () =>
+        getGlobal.restaurantsView.map((r, idx) =>
+            <div key={r.name} className={'list-row'} onClick={() => updateVote(r)}>
+                <div className={'list-column'}>{ renderColumn(r, 'name') }</div>
+                <div className={'list-column'}>{ renderColumn(r, 'priceRange') }</div>
+                <div className={'list-column'}>{ renderColumn(r, 'supportedCards') }</div>
+            </div>);
+
+    const renderColumn = (obj: IRestaurantData, prop: keyof IRestaurantData) => {
+        const fieldMeta = getGlobal.fieldMetaData.find(f => f.id === prop);
         return fieldMeta!.renderValue(obj[prop]);
     };
 
     return (
-        <div className={'card'}>
+        <div className={'card card-wide'}>
             <div className={'list-container'}>
-                <div className={'list-row list-row-header'}>
-                    {
-                        header.map(h => <div key={h.id} className={'list-column list-column-header'}>{h.text}</div>)
-                    }
-                </div>
-                {
-                    restaurants.map((r, idx) =>
-                        <div key={r.name} className={'list-row'}>
-                            <div className={'list-column'}>{render(r, 'name')}</div>
-                            <div className={'list-column'}>{render(r, 'priceRange')}</div>
-                        </div>)
-                }
+                <div className={'list-row list-row-header'}>{ renderHeader() }</div>
+                { renderRestaurants() }
             </div>
         </div>
     );

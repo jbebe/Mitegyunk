@@ -6,9 +6,14 @@
     padding: 7px;
     display: flex;
     flex-direction: row;
+    cursor: pointer;
 
     &:nth-child(odd) {
       background: #f0f0f0;
+    }
+
+    &:hover {
+      background: #72cdff;
     }
 
     &.list-row-header {
@@ -18,7 +23,18 @@
 
     .list-column {
       flex: 1;
-      
+    }
+
+    .cash::before {
+      content: '💰';
+    }
+
+    .debitcard::before {
+      content: '💳';
+    }
+
+    .szepcard::before {
+      content: 'SZÉP';
     }
   }
 }

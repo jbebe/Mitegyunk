@@ -1,21 +1,18 @@
 import './UpcomingLunch.scss';
-import React, {useState} from 'react';
-import {IRestaurantData, IVoter, renderVote, VoteType} from "../../../shared/Types";
-import {ObjectStore} from "../../../logic/ObjectStore";
+import React, {useEffect, useState} from 'react';
+import {IRestaurantData, IVote, renderVote, VoteType} from "../../../shared/Types";
+import {ApiStore} from "../../../logic/ApiStore";
 
 function UpcomingLunch() {
-
     const [restaurants, setRestaurants] = useState([] as IRestaurantData[]);
+    const [restaurantStore] = useState(ApiStore.getInstance<IRestaurantData>('restaurant'));
 
-    async function initAsync(){
-        const restaurants = await ObjectStore.getRestaurantsAsync();
-        setRestaurants(restaurants);
-    }
-
-    initAsync();
+    useEffect(() => {(async () => {
+        setRestaurants(await restaurantStore.getAllAsync());
+    })()}, []);
 
     const title = 'Állás';
-    const voters: IVoter[] = [
+    const voters: IVote[] = [
         {
             name: 'Bálint',
             restaurants: [
@@ -64,7 +61,7 @@ function UpcomingLunch() {
             : 'Nincs közös egyezés :(';
     })();
 
-    function renderRestaurants(voter: IVoter) {
+    function renderRestaurants(voter: IVote) {
         return voter.restaurants.map(r =>
             <div key={`${voter.name}${r.name}${r.type}`}>
                 {`${r.name} (${renderVote(r.type)})`}

@@ -4,19 +4,22 @@ import { ParamsDictionary } from 'express-serve-static-core';
 
 import logger from 'src/utils/Logger';
 import { paramMissingError } from 'src/utils/constants';
-import {IRestaurantData} from '@shared/Types';
+import {IPreference, IVote} from '@shared/Types';
 import {DummyDb} from '../DummyDb';
 
 // Init utils
 const router = Router();
-const restaurantDb = new DummyDb<IRestaurantData>('restaurant');
+const voteDb = new DummyDb<IVote>('vote');
+
+// Create new vote for restaurant
+// Delete vote for restaurant
 
 // GET
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:user', async (req: Request, res: Response) => {
     try {
-        const { id } = req.params as ParamsDictionary;
-        const restaurants = await restaurantDb.getAsync((o => o.name === id));
-        return res.status(OK).json(restaurants);
+        const { userName } = req.params as ParamsDictionary;
+        const userVotes = await voteDb.getAsync((v => v.name === userName));
+        return res.status(OK).json(userVotes);
     } catch (err) {
         logger.error(err.message, err);
         return res.status(BAD_REQUEST).json({
@@ -25,11 +28,11 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 });
 
-// GET all
+// Get all votes
 router.get('/', async (req: Request, res: Response) => {
     try {
-        const restaurants = await restaurantDb.getAllAsync();
-        return res.status(OK).json(restaurants);
+        const votes = await voteDb.getAllAsync();
+        return res.status(OK).json(votes);
     } catch (err) {
         logger.error(err.message, err);
         return res.status(BAD_REQUEST).json({
@@ -41,13 +44,13 @@ router.get('/', async (req: Request, res: Response) => {
 // CREATE
 router.post('/', async (req: Request, res: Response) => {
     try {
-        const { restaurant } = req.body;
-        if (!restaurant) {
+        const voter = req.body as IVote;
+        if (!voter) {
             return res.status(BAD_REQUEST).json({
                 error: paramMissingError,
             });
         }
-        await restaurantDb.addAsync(restaurant);
+        await voteDb.addAsync(voter);
         return res.status(CREATED).end();
     } catch (err) {
         logger.error(err.message, err);
@@ -58,16 +61,25 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // UPDATE
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:user', async (req: Request, res: Response) => {
     try {
-        const { user: restaurant } = req.body;
-        const { id } = req.params as ParamsDictionary;
-        if (!restaurant || !id) {
+        const preference = req.body as IPreference;
+        const { userName } = req.params as ParamsDictionary;
+        if (!preference || !userName) {
             return res.status(BAD_REQUEST).json({
                 error: paramMissingError,
             });
         }
-        await restaurantDb.updateAsync((o) => o.name === id, restaurant);
+        await voteDb.updateAsync(
+            (v) => v.name === userName,
+            (prev) => ({
+                name: prev.name,
+                restaurants: (() => {
+                    const oldIdx = prev.restaurants.findIndex(r => r.name === preference.name);
+                    prev.restaurants.splice(oldIdx, 1, preference);
+                    return prev.restaurants;
+                })(),
+        }));
         return res.status(OK).end();
     } catch (err) {
         logger.error(err.message, err);
@@ -78,10 +90,15 @@ router.put('/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE
-router.delete('/delete/:id', async (req: Request, res: Response) => {
+router.delete('/:user/:restaurant', async (req: Request, res: Response) => {
     try {
-        const { id } = req.params as ParamsDictionary;
-        await restaurantDb.deleteAsync((o) => o.name === id);
+        const { user, restaurant } = req.params as ParamsDictionary;
+        if (!user || !restaurant) {
+            return res.status(BAD_REQUEST).json({
+                error: paramMissingError,
+            });
+        }
+        await voteDb.deleteAsync((o) => o.name === restaurant);
         return res.status(OK).end();
     } catch (err) {
         logger.error(err.message, err);

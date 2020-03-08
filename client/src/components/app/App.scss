@@ -12,5 +12,9 @@
 
     border-radius: 2px;
     border: #999 1px solid;
+
+    &.card-wide {
+      flex: 0 0 calc(100% - 2*#{$margin} - 2*#{$border});
+    }
   }
 }
