@@ -1,5 +1,5 @@
 import './RestaurantList.scss';
-import React, {useEffect} from "react";
+import React from "react";
 import {IRestaurantData, VoteType} from "../../../shared/Types";
 import {
     FilterOnColumn,
@@ -32,14 +32,17 @@ function RestaurantList({ getGlobal, setGlobal }: ChildParametersType) {
             ...restaurant,
             type: VoteType.Yes,
         });
-        setGlobal((prev) => ({
-            ...prev,
-            vote: {
-                name: vote.name,
-                restaurants: vote.restaurants
-            },
-        }));
-        getGlobal.voteApi.createAsync(vote);
+
+        getGlobal.voteApi.createAsync(vote)
+        .then(() => {
+            setGlobal((prev) => ({
+                ...prev,
+                vote: {
+                    name: vote.name,
+                    restaurants: vote.restaurants
+                },
+            }));
+        });
     };
 
     const renderHeader = () =>
@@ -47,14 +50,19 @@ function RestaurantList({ getGlobal, setGlobal }: ChildParametersType) {
             <div key={h.id} className={'list-column list-column-header'}>
                 {h.text}
                 <button onClick={() => orderByColumn(h)}>↕</button>
-                <select onChange={(e) => filterOnColumn(e, h)} multiple>
+                <select onChange={(e) => filterOnColumn(e, h)} hidden={!h.filter} multiple>
                     { h.filter?.values.map(({key, value}) =>
                         <option key={`${h.id}${value}`} value={key}>{ value }</option>) }
                 </select>
             </div>);
 
     const renderRestaurants = () =>
-        getGlobal.restaurantsView.map((r, idx) =>
+        getGlobal.restaurantsView
+            .filter((r) => {
+                const alreadyVotedRestaurants = getGlobal.vote.restaurants.map((x) => x.name);
+                return !alreadyVotedRestaurants.includes(r.name);
+            })
+            .map((r, idx) =>
             <div key={r.name} className={'list-row'} onClick={() => updateVote(r)}>
                 <div className={'list-column'}>{ renderColumn(r, 'name') }</div>
                 <div className={'list-column'}>{ renderColumn(r, 'priceRange') }</div>

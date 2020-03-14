@@ -50,7 +50,15 @@ router.post('/', async (req: Request, res: Response) => {
                 error: paramMissingError,
             });
         }
-        await voteDb.addAsync(voter);
+        const prevVoter = await voteDb.getAsync((v) => v.name === voter.name);
+        if (prevVoter !== null){
+            await voteDb.addAsync(voter);
+        }
+        else {
+            await voteDb.updateAsync(
+                (v) => v.name === voter.name,
+                (prev) => voter);
+        }
         return res.status(CREATED).end();
     } catch (err) {
         logger.error(err.message, err);
@@ -61,25 +69,15 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // UPDATE
-router.put('/:user', async (req: Request, res: Response) => {
+router.put('/', async (req: Request, res: Response) => {
     try {
-        const preference = req.body as IPreference;
-        const { userName } = req.params as ParamsDictionary;
-        if (!preference || !userName) {
+        const vote = req.body as IVote;
+        if (!vote) {
             return res.status(BAD_REQUEST).json({
                 error: paramMissingError,
             });
         }
-        await voteDb.updateAsync(
-            (v) => v.name === userName,
-            (prev) => ({
-                name: prev.name,
-                restaurants: (() => {
-                    const oldIdx = prev.restaurants.findIndex(r => r.name === preference.name);
-                    prev.restaurants.splice(oldIdx, 1, preference);
-                    return prev.restaurants;
-                })(),
-        }));
+        await voteDb.createOrUpdateAsync((v) => v.name === vote.name, vote);
         return res.status(OK).end();
     } catch (err) {
         logger.error(err.message, err);
@@ -89,7 +87,7 @@ router.put('/:user', async (req: Request, res: Response) => {
     }
 });
 
-// DELETE
+// DELETE restaurant
 router.delete('/:user/:restaurant', async (req: Request, res: Response) => {
     try {
         const { user, restaurant } = req.params as ParamsDictionary;
@@ -98,7 +96,17 @@ router.delete('/:user/:restaurant', async (req: Request, res: Response) => {
                 error: paramMissingError,
             });
         }
-        await voteDb.deleteAsync((o) => o.name === restaurant);
+        const vote = await voteDb.getAsync((v) => v.name === user);
+        if (!vote){
+            throw new Error('User not found');
+        }
+        const restaurantIndex = vote.restaurants.findIndex((p) => p.name === restaurant);
+        if (restaurantIndex === -1){
+            throw new Error('Restaurant not found');
+        }
+        vote.restaurants.splice(restaurantIndex, 1);
+        await voteDb.updateAsync((v) => v.name === user, (prev) => vote);
+
         return res.status(OK).end();
     } catch (err) {
         logger.error(err.message, err);

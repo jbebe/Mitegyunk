@@ -2,20 +2,41 @@ import React from "react";
 import {CardType, IRestaurantData, IVote, PriceRange} from "../shared/Types";
 import {ApiStore} from "./ApiStore";
 
-export function getCardTypeNames(val: CardType): string[] {
-    const values = [CardType.Cash];
-    const keys = Object.keys(CardType);
+function getEnumNames<T extends number>(currentValue: number, enumValues: string[], initialValue?: T) {
+    const values: T[] = initialValue !== undefined ? [initialValue] : [];
+    const keys = enumValues;
 
     for (let i = 0; i < ((keys.length/2)|0); ++i){
-        if (((+val) & (1 << i)) !== 0){
-            values.push((1 << i) as CardType);
+        if (((+currentValue) & (1 << i)) !== 0){
+            // @ts-ignore
+            values.push(1 << i);
         }
     }
 
     return values.map(v => {
+        // @ts-ignore
         const valueIndex = keys.findIndex(k => k === v.toString());
         return keys[valueIndex + (keys.length/2)];
     });
+}
+
+function getArrayOfEnum(keys: string[]){
+    const values = [] as string[];
+    const names = [] as string[];
+    for (const type of keys){
+        if (/^\d/g.test(type))
+            values.push(type);
+        else
+            names.push(type);
+    }
+    return names.reduce(
+        (acc, curr, idx) =>
+            [...acc, { key: values[idx], value: names[idx] }],
+        [] as Array<KeyValuePair>);
+}
+
+export function getCardTypeNames(val: CardType): string[] {
+    return getEnumNames(val, Object.keys(CardType), CardType.Cash);
 }
 
 export interface KeyValuePair {
@@ -76,20 +97,7 @@ export const FieldMetadata = [
             isReversed: false,
         },
         filter: {
-            values: (() => {
-                const values = [] as string[];
-                const names = [] as string[];
-                for (const type in PriceRange){
-                    if (/^\d/g.test(type))
-                        values.push(type);
-                    else
-                        names.push(type);
-                }
-                return names.reduce(
-                    (acc, curr, idx) =>
-                        [...acc, { key: values[idx], value: names[idx] }],
-                    [] as Array<KeyValuePair>);
-            })(),
+            values: getArrayOfEnum(Object.keys(PriceRange)),
             callback: (values, data) =>
                 values.includes(data.priceRange.toString()),
         },
@@ -109,22 +117,14 @@ export const FieldMetadata = [
             isReversed: false,
         },
         filter: {
-            values: (() => {
-                const values = [] as string[];
-                const names = [] as string[];
-                for (const type in CardType){
-                    if (/^\d/g.test(type))
-                        values.push(type);
-                    else
-                        names.push(type);
-                }
-                return names.reduce(
-                    (acc, curr, idx) =>
-                        [...acc, { key: values[idx], value: names[idx] }],
-                    [] as Array<KeyValuePair>);
-            })(),
-            callback: (values, data) =>
-                values.includes(data.supportedCards.toString()),
+            values: getArrayOfEnum(Object.keys(CardType)),
+            callback: (values, data) => {
+                const types = getArrayOfEnum(Object.keys(CardType));
+                const options = values.map((x) =>
+                    types.find((y) => y.key === x)!.value);
+                const supportedCards = getCardTypeNames(data.supportedCards);
+                return options.every((x) => supportedCards.includes(x));
+            },
         },
     }
 ] as IRestaurantFieldMeta[];
@@ -155,8 +155,8 @@ export const FilterOnColumn = (
     values: string[],
     meta: IRestaurantFieldMeta,
     state: IGlobalState,
-    setState: (value: (prevState: IGlobalState) => IGlobalState) => void) => {
-
+    setState: (value: (prevState: IGlobalState) => IGlobalState) => void) =>
+{
     const filtered = state.restaurants.filter(r => meta.filter!.callback(values, r));
     setState((prev) => ({
         ...prev,

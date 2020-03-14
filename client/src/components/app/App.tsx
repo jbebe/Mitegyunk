@@ -37,12 +37,24 @@ function App() {
             restaurants: restaurants,
             restaurantsView: restaurants,
         }));
+
+        const votes = await state.voteApi.getAllAsync();
+        setState((prev) => ({
+            ...prev,
+            vote: {
+                ...state.vote,
+                restaurants: votes.find(
+                    (v) => v.name === state.vote.name)?.restaurants || [],
+            }
+        }));
     })()}, []);
+
+
 
     return (
         <div className="app">
             <OwnVote getGlobal={state} setGlobal={setState} />
-            <UpcomingLunch />
+            <UpcomingLunch getGlobal={state} setGlobal={setState} />
             <RestaurantList getGlobal={state} setGlobal={setState} />
             <Statistics/>
         </div>

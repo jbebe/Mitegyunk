@@ -49,9 +49,9 @@ export class ApiStore<T> {
         return this.objects as T[];
     }
 
-    public async createAsync(vote: IVote): Promise<void> {
+    public async createAsync(vote: T): Promise<void> {
         const response = await fetch(`http://localhost:4000/api/${this.resourceName}`, {
-            method: 'POST',
+            method: 'PUT',
             body: JSON.stringify(vote),
             headers: {
                 'Content-Type': 'application/json',

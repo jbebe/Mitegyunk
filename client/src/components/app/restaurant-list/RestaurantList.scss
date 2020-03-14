@@ -35,6 +35,12 @@
 
     .szepcard::before {
       content: 'SZÉP';
+      color: #fff;
+      font-size: 10px;
+      background: #006d00;
+      padding: 1px 3px;
+      border-radius: 3px;
+      font-weight: bold;
     }
   }
 }

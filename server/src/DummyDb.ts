@@ -27,7 +27,7 @@ export class DummyDb<T> {
         return jsonfile.writeFile(this.dbFilePath, db);
     }
 
-    public async getAsync(selector: (obj: T) => boolean): Promise<any> {
+    public async getAsync(selector: (obj: T) => boolean): Promise<T | null> {
         const db = await this.openDbAsync() as T[];
         const obj = db.find((o) => selector(o));
         return obj || null;
@@ -44,6 +44,18 @@ export class DummyDb<T> {
 
         db.push(obj);
 
+        await this.saveDbAsync(db);
+    }
+
+    public async createOrUpdateAsync(selector: (obj: T) => boolean, newObj: T): Promise<void> {
+        const db = await this.openDbAsync() as T[];
+        const idx = db.findIndex((o) => selector(o));
+        if (idx >= 0){
+            db[idx] = newObj;
+        }
+        else {
+            db.push(newObj);
+        }
         await this.saveDbAsync(db);
     }
 

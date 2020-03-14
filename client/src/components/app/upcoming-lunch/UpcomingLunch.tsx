@@ -1,50 +1,22 @@
 import './UpcomingLunch.scss';
-import React, {useEffect, useState} from 'react';
-import {IRestaurantData, IVote, renderVote, VoteType} from "../../../shared/Types";
-import {ApiStore} from "../../../logic/ApiStore";
+import React, {useState} from 'react';
+import {IVote, renderVote} from "../../../shared/Types";
+import {ChildParametersType} from "../../../logic/RestaurantListTableLogic";
 
-function UpcomingLunch() {
-    const [restaurants, setRestaurants] = useState([] as IRestaurantData[]);
-    const [restaurantStore] = useState(ApiStore.getInstance<IRestaurantData>('restaurant'));
+function UpcomingLunch({ getGlobal, setGlobal }: ChildParametersType) {
+    const [voters, setVoters] = useState([]  as IVote[]);
 
-    useEffect(() => {(async () => {
-        setRestaurants(await restaurantStore.getAllAsync());
-    })()}, []);
+    getGlobal.voteApi.getAllAsync().then((val) => {
+       setVoters(val);
+    });
 
     const title = 'Állás';
-    const voters: IVote[] = [
-        {
-            name: 'Bálint',
-            restaurants: [
-                {
-                    type:VoteType.Yes,
-                    ...restaurants[Math.floor(Math.random()*restaurants.length)]
-                },
-                {
-                    type:VoteType.Maybe,
-                    ...restaurants[Math.floor(Math.random()*restaurants.length)]
-                }
-            ]
-        },
-        {
-            name: 'Roland',
-            restaurants: [
-                {
-                    type:VoteType.Yes,
-                    ...restaurants[Math.floor(Math.random()*restaurants.length)]
-                },
-                {
-                    type:VoteType.Maybe,
-                    ...restaurants[Math.floor(Math.random()*restaurants.length)]
-                }
-            ]
-        }
-    ];
+
     const result = (() => {
         function intersection(sets: Array<Array<string>>): string[] {
             const [head, ...rest] = sets;
             if (rest.length === 0)
-                return head;
+                return head || [];
 
             const set = new Set(head);
             // @ts-ignore
