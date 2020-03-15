@@ -16,6 +16,16 @@ Egy web app, ami lehetővé teszi, hogy belépés után kedvenc éttermeidre vok
   * De csak event-ök menjenek websocket-en, ne terhelődjön feleslegesen
   * Szerencsére az express.js tud egy porton egyszerre websocket és http protokollt indítani ;)
 
+### ⏳ Feature bővítés
+* Biztos nem, tartózkodom, talán, igen állapotok bevezetése
+* Több tulajdonság bevétele az éttermekhez (logó, hely, távolság, kiszolgálási idő, megosztott hely)
+* Már nem csak a metszet jelenik meg eredménynek, hanem javaslatok is, ha nincs teljes egyezés
+  * Itt persze bele lehetne menni a rabbit hole-ba, de nem tesszük: 
+  * hasonló éttermek felajánlása
+  * előző választások alapján ajánlás
+  * egymás után két napon ugyanoda nem sorsol helyet
+  * stb... 
+
 ### ⏳ Facelift
 * A UI mobil baráttá tétele
 * Gombok, mezők szépítése, tipográfia, animációk
