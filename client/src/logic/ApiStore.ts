@@ -41,7 +41,8 @@ export class ApiStore<T> {
             else {
                 this.alreadyLoading = true;
                 console.log('fetching ' + this.resourceName);
-                const response = await fetch(`http://localhost:4000/api/${this.resourceName}`);
+                // eslint-disable-next-line no-restricted-globals
+                const response = await fetch(`http://${location.hostname}:4000/api/${this.resourceName}`);
                 this.objects = await response.json();
                 this.waiting.emit(ApiStore.EVENT_READY);
             }
@@ -50,7 +51,8 @@ export class ApiStore<T> {
     }
 
     public async createAsync(vote: T): Promise<void> {
-        const response = await fetch(`http://localhost:4000/api/${this.resourceName}`, {
+        // eslint-disable-next-line no-restricted-globals
+        const response = await fetch(`http://${location.host}/api/${this.resourceName}`, {
             method: 'PUT',
             body: JSON.stringify(vote),
             headers: {
