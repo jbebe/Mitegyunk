@@ -1,5 +1,5 @@
-
 .idea
 node_modules
 client/build
 server/public
+server/dist

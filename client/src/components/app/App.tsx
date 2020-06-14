@@ -49,8 +49,6 @@ function App() {
         }));
     })()}, []);
 
-
-
     return (
         <div className="app">
             <OwnVote getGlobal={state} setGlobal={setState} />
