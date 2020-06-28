@@ -1,6 +1,8 @@
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import { Request, Response } from 'express';
+import { createServer, IncomingMessage } from 'http';
+import * as WebSocket from 'ws';
 import logger from 'morgan';
 import BaseRouter from './routes';
 import cors from 'cors';
@@ -8,6 +10,7 @@ import {NextFunction} from 'express-serve-static-core';
 
 // Init express
 const app = express();
+const server = createServer(app);
 
 // Add middleware/settings/routes to express.
 app.use(logger('dev'));
@@ -33,5 +36,26 @@ app.use((req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
 });
 
+const wss = new WebSocket.Server({ server, path: '/vote' });
+
+wss.on('connection', (ws: WebSocket) => {
+    ws.on('message', (message: string) => {
+        try {
+            const msgObj = JSON.parse(message);
+            
+            const otherClients = [...wss.clients].filter(c => c != ws);
+            
+            otherClients.forEach((client) => {
+                const replyObj = {
+                    text: msgObj.text
+                };
+                const reply = JSON.stringify(replyObj);
+                client.send(reply);
+            });
+        } catch (ex) {
+        }
+    });
+});
+
 // Export express instance
-export default app;
+export default server;
