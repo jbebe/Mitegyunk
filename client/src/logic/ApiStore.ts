@@ -52,7 +52,7 @@ export class ApiStore<T> {
 
     public async createAsync(vote: T): Promise<void> {
         // eslint-disable-next-line no-restricted-globals
-        const response = await fetch(`http://${location.host}/api/${this.resourceName}`, {
+        const response = await fetch(`http://${location.hostname}:4000/api/${this.resourceName}`, {
             method: 'PUT',
             body: JSON.stringify(vote),
             headers: {
